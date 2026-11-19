@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Flood Verdict — Flood Insurance vs Self-Insure</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0C150D">
+<link rel="icon" href="icons/icon-32.png"><link rel="apple-touch-icon" href="icons/icon-180.png">
+<style>
+:root{--bg:#0C150D;--surface:#142014;--text:#EFF0E2;--accent:#A89B5C;--accent2:#2E4A2E;--muted:#B9BBA6;--line:#2E4A2E}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Georgia,serif;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 18px 60px}
+.eyebrow{letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-size:12px;text-align:center}
+h1{font-size:clamp(36px,6vw,64px);line-height:.95;text-align:center;margin:10px 0 8px}
+.sub{text-align:center;color:var(--muted);max-width:720px;margin:0 auto 22px;font-style:italic}
+.orn{text-align:center;color:var(--accent);letter-spacing:.5em}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,#162416,var(--surface));border:1px solid var(--line);border-radius:6px;padding:18px}
+.card h2{margin:0 0 12px;font-size:20px;color:var(--accent)}
+label{display:block;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+input,select{width:100%;padding:10px;background:#0C150D;border:1px solid var(--line);color:var(--text);border-radius:4px;font-size:16px;font-family:Georgia,serif}
+.hero{text-align:center;padding:26px}
+.seal{display:inline-block;border:2px solid var(--accent);border-radius:50%;width:150px;height:150px;line-height:1.1;padding-top:42px;font-weight:bold;color:var(--accent);transform:rotate(-6deg);font-size:19px;background:rgba(168,155,92,.08)}
+.big{font-size:42px;color:var(--accent);font-weight:bold}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid #243824;padding:8px;text-align:left}th{color:var(--accent)}
+button{background:var(--accent2);color:var(--text);border:1px solid var(--accent);padding:11px 16px;border-radius:4px;cursor:pointer;font-family:Georgia,serif;font-size:15px}
+button.gold{background:var(--accent);color:#0C150D;font-weight:bold}
+.bar{height:18px;background:#0a0f0a;border:1px solid var(--line);display:flex;overflow:hidden;border-radius:3px}.bar i{display:block;height:100%}
+.preset{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.preset button{flex:1;min-width:120px}
+.small{font-size:13px;color:var(--muted)} .row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted #3a4a3a}
+textarea{width:100%;min-height:110px;background:#0C150D;color:var(--text);border:1px solid var(--line);padding:10px}
+</style></head><body><div class="wrap">
+<div class="eyebrow">❦ The Bull Brew Daily Tool ❦</div><h1>The Flood Verdict</h1>
+<p class="sub">A 1% annual flood chance is not rare. Over 30 years it is a 26% chance of at least one flood. This judge prices the premium against the real expected loss — and the one flood your reserves cannot survive.</p>
+<div class="orn">❦ · ❦ · ❦</div>
+<div class="preset" id="presets"></div>
+<div class="grid">
+<div class="card"><h2>The Property</h2>
+<label>Structure value ($)</label><input id="structure" type="number" value="420000">
+<label>Contents value ($)</label><input id="contents" type="number" value="60000">
+<label>Flood zone</label><select id="zone"><option value="1">AE — 1% annual (100-yr)</option><option value="1.5">VE — coastal, 1.5% effective</option><option value="0.2">X500 — 0.2% annual (500-yr)</option><option value="0.1">X — minimal, 0.1%</option><option value="0.6">Flash-flood inland — 0.6%</option></select>
+<label>Elevation vs base flood elevation (ft, + is above)</label><input id="elev" type="number" value="0" step="0.5">
+<label>Damage if a flood hits (% of structure+contents)</label><input id="damagePct" type="number" value="35">
+<label>Cash reserve you could actually spend ($)</label><input id="reserve" type="number" value="50000">
+<label>Years you will hold (yrs)</label><input id="hold" type="number" value="10">
+</div>
+<div class="card"><h2>The Policy Quote</h2>
+<label>Annual premium ($/yr)</label><input id="premium" type="number" value="1850">
+<label>Deductible ($)</label><input id="deductible" type="number" value="5000">
+<label>Coverage cap — structure + contents ($)</label><input id="cap" type="number" value="350000">
+<label>Lender requires flood insurance?</label><select id="required"><option value="no">No</option><option value="yes">Yes — required</option></select>
+<p class="small">Elevation matters: each foot above base flood elevation cuts risk sharply; each foot below raises it. The model adjusts the zone chance by elevation before any verdict.</p>
+<div class="row"><span>Adjusted annual chance</span><b id="adjChance">—</b></div>
+<div class="row"><span>Chance of ≥1 flood in hold</span><b id="probHold">—</b></div>
+<div class="row"><span>Damage from one flood</span><b id="oneDamage">—</b></div>
+</div>
+</div>
+<div class="card hero" style="margin-top:16px"><div class="seal" id="seal">—</div><div class="big" id="headline">—</div><p id="verdictText" class="sub" style="margin-top:8px"></p>
+<div class="bar" id="bar"></div><p class="small" id="barLegend"></p></div>
+<div class="grid" style="margin-top:16px">
+<div class="card"><h2>The Honest Ledger</h2><div id="ledger"></div></div>
+<div class="card"><h2>Solvers</h2><div id="solvers"></div>
+<h2 style="margin-top:18px">Annual-chance sensitivity</h2><table><thead><tr><th>Annual chance</th><th>Expected loss / hold</th><th>Insured total</th></tr></thead><tbody id="sens"></tbody></table></div>
+</div>
+<div class="card" style="margin-top:16px"><h2>Save &amp; Share</h2>
+<label>Case name</label><input id="caseName" value="My flood check">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0"><button class="gold" id="saveBtn">Save case</button><button id="copyBtn">Copy summary</button></div>
+<div id="saved" class="small"></div><textarea id="summary" readonly></textarea>
+<p class="small">Estimates only — not insurance advice. Flood maps, lender rules and policy terms control. Check your elevation certificate and get a real quote before deciding.</p></div>
+</div>
+<script>
+const $=id=>document.getElementById(id); const fmt=n=>"$"+Math.round(n).toLocaleString();
+const presets={
+ "River AE":{structure:420000,contents:60000,zone:"1",elev:0,damagePct:35,reserve:50000,hold:10,premium:1850,deductible:5000,cap:350000,required:"no"},
+ "Coastal VE":{structure:650000,contents:90000,zone:"1.5",elev:-1,damagePct:50,reserve:80000,hold:10,premium:5200,deductible:10000,cap:500000,required:"yes"},
+ "Low-Risk X":{structure:380000,contents:50000,zone:"0.1",elev:3,damagePct:25,reserve:70000,hold:10,premium:650,deductible:5000,cap:350000,required:"no"},
+ "Flash-Flood Inland":{structure:320000,contents:45000,zone:"0.6",elev:0,damagePct:30,reserve:25000,hold:7,premium:1200,deductible:5000,cap:300000,required:"no"}
+};
+Object.keys(presets).forEach(k=>{let b=document.createElement("button");b.textContent=k;b.onclick=()=>{Object.entries(presets[k]).forEach(([id,v])=>{$(id).value=v});calc()};$("presets").appendChild(b)});
+function elevMult(e){ if(e<=-2)return 1.9; if(e<=-1)return 1.45; if(e<0)return 1.2; if(e==0)return 1; if(e<=1)return .7; if(e<=2)return .5; return .33; }
+function calc(){
+ let s=+$("structure").value||0,c=+$("contents").value||0,base=+$("zone").value||0,elev=+$("elev").value||0,dp=(+$("damagePct").value||0)/100,res=+$("reserve").value||0,hold=Math.max(1,+$("hold").value||1),prem=+$("premium").value||0,ded=+$("deductible").value||0,cap=+$("cap").value||0,req=$("required").value==="yes";
+ let p=Math.min(8, base*elevMult(elev)); let pDec=p/100;
+ let damage=(s+c)*dp; let probHold=1-Math.pow(1-pDec,hold);
+ let expLoss=pDec*damage*hold;
+ let uncovered=Math.max(0,damage-cap); let oopPerEvent=Math.min(damage, ded+uncovered);
+ let expOOP=pDec*oopPerEvent*hold; let insuredTotal=prem*hold+expOOP; let uninsuredTotal=expLoss;
+ let coverRatio=damage? Math.min(1,cap/damage):1;
+ let seal,head,text;
+ if(req){seal="INSURE IT";head="Required — and the math agrees you need a real cap";text="Your lender requires coverage. The live question is not whether to buy, it is whether the cap actually covers one flood.";}
+ else if(coverRatio<0.4){seal="UNDERINSURED";head="This policy would not survive the flood it is priced for";text="The cap covers under 40% of a single flood's damage. Either raise the cap or treat this as self-insuring with a premium attached.";}
+ else if(damage>res && probHold>=0.05){seal="INSURE IT";head=fmt(damage-res)+" beyond your reserve is on the line";text="One flood costs more than you can spend. Expected value is second to survival here — insure the ruin risk.";}
+ else if(insuredTotal < uninsuredTotal*0.9){seal="INSURE IT";head="Insurance is cheaper than the expected loss by "+fmt(uninsuredTotal-insuredTotal);text="On pure math the premium buys more than it costs over your hold.";}
+ else if(uninsuredTotal < insuredTotal*0.85 && res>=damage){seal="SELF-INSURE";head="Your reserve covers a flood and the premium overcharges for the risk";text="Bank the premium difference in a labelled reserve and revisit if your zone, elevation or reserve changes.";}
+ else {seal="CLOSE CALL";head="The two paths are within striking distance — "+fmt(Math.abs(insuredTotal-uninsuredTotal))+" apart";text="Decide on sleep, not spreadsheets: if one flood would force debt or a forced sale, insure. If not, self-insure and fund the reserve.";}
+ $("seal").textContent=seal; $("headline").textContent=head; $("verdictText").textContent=text;
+ $("adjChance").textContent=p.toFixed(2)+"% / yr"; $("probHold").textContent=(probHold*100).toFixed(1)+"%"; $("oneDamage").textContent=fmt(damage);
+ $("ledger").innerHTML=[["Expected loss, uninsured (hold)",fmt(uninsuredTotal)],["Premiums (hold)",fmt(prem*hold)],["Expected deductible + above-cap (hold)",fmt(expOOP)],["Total insured path",fmt(insuredTotal)],["Difference (insured − uninsured)",fmt(insuredTotal-uninsuredTotal)],["Reserve vs one flood",fmt(res)+" vs "+fmt(damage)]].map(r=>`<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
+ // break-even premium: (expLoss - expOOP)/hold
+ let bePrem=Math.max(0,(expLoss-expOOP)/hold);
+ // break-even chance binary search
+ let lo=0,hi=20; for(let i=0;i<50;i++){let mid=(lo+hi)/2; let el=mid/100*damage*hold; let it=prem*hold+mid/100*oopPerEvent*hold; if(it<el) lo=mid; else hi=mid;}
+ $("solvers").innerHTML=[["Break-even premium",fmt(bePrem)+"/yr — pay less than this and insurance wins on math"],["Break-even annual chance",lo.toFixed(2)+"% — above this, insuring wins on math"],["Cover ratio",Math.round(coverRatio*100)+"% of one flood covered by the cap"],["Premium per $1 of expected loss", expLoss? "$"+(prem*hold/Math.max(1,expLoss)).toFixed(2):"—"]].map(r=>`<div class="row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join("");
+ let total=Math.max(1,insuredTotal+uninsuredTotal); let ip=insuredTotal/total*100;
+ $("bar").innerHTML=`<i style="width:${ip}%;background:#A89B5C"></i><i style="width:${100-ip}%;background:#2E4A2E"></i>`; $("barLegend").textContent=`Gold: insured path ${fmt(insuredTotal)} · Green: uninsured expected loss ${fmt(uninsuredTotal)}`;
+ $("sens").innerHTML=[0.2,0.5,1,2,3,5].map(ch=>{let el=ch/100*damage*hold; let it=prem*hold+ch/100*oopPerEvent*hold; return `<tr><td>${ch}%</td><td>${fmt(el)}</td><td>${fmt(it)}</td></tr>`}).join("");
+ $("summary").value=`The Flood Verdict — ${seal}\nAdjusted chance ${p.toFixed(2)}%/yr, ${(probHold*100).toFixed(1)}% chance of ≥1 flood in ${hold} yrs. One flood: ${fmt(damage)}. Uninsured expected: ${fmt(uninsuredTotal)}. Insured total: ${fmt(insuredTotal)}. Break-even premium ${fmt(bePrem)}/yr.`;
+ renderSaved();
+}
+function renderSaved(){let arr=JSON.parse(localStorage.getItem("flood-verdict")||"[]"); $("saved").innerHTML=arr.map((x,i)=>`${x.name}: ${x.seal} <button onclick="delSaved(${i})">×</button>`).join("<br>")||"No saved cases yet."}
+window.delSaved=i=>{let a=JSON.parse(localStorage.getItem("flood-verdict")||"[]");a.splice(i,1);localStorage.setItem("flood-verdict",JSON.stringify(a));renderSaved()};
+$("saveBtn").onclick=()=>{let a=JSON.parse(localStorage.getItem("flood-verdict")||"[]");a.push({name:$("caseName").value,seal:$("seal").textContent});localStorage.setItem("flood-verdict",JSON.stringify(a));renderSaved()};
+$("copyBtn").onclick=()=>{$("summary").select();document.execCommand("copy")};
+document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc)); calc();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script></body></html>
